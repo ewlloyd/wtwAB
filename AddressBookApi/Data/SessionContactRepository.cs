@@ -40,7 +40,7 @@ namespace AddressBookApi.Data
                     {
                         new Location
                         {
-                            Id = "Away",
+                            Name = "Away",
                             Email = "jolietjake@jailmail.com",
                             Address1 = "Joliet Correctional Center",
                             Address2 = "1125 Collins St.",
@@ -59,7 +59,7 @@ namespace AddressBookApi.Data
                     {
                         new Location
                         {
-                            Id = "Home",
+                            Name = "Home",
                             Email = "elwoodblues@gmail.com",
                             Address1 = "1060 W. Addison St.",
                             City = "Chicago",
@@ -69,7 +69,7 @@ namespace AddressBookApi.Data
                         },
                         new Location
                         {
-                            Id = "Cell",
+                            Name = "Cell",
                             Phone = "(815) 555-2583"
                         }
                     }

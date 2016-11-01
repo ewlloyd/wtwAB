@@ -65,10 +65,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AddressBookTests.cs" />
+    <Compile Include="LocationTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AddressBookApi\AddressBookApi.csproj">
+      <Project>{865DEAA8-9ACD-49E1-B7E7-5E70384CCC5C}</Project>
+      <Name>AddressBookApi</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

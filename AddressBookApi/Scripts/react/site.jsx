@@ -2,7 +2,7 @@
   constructor(props) {
     super(props);
     this.state = {
-      value: props.value || "",
+      value: props.value || ""
     };
     this.handleChange = this.handleChange.bind(this);
   }
@@ -15,8 +15,11 @@
     if (this.props.editMode) {
       return (
         <div className="form-group">
-        <input type={this.props.type} onChange={this
-          .handleChange} className="form-control" placeholder={this.props.placeholder} value={this.state.value} />
+          <input type={this.props.type}
+                 onChange={this.handleChange}
+                 className="form-control"
+                 placeholder={this.props.placeholder}
+                 value={this.state.value} />
         </div>
       );
     } else {
@@ -30,25 +33,34 @@
 class Location extends React.Component {
   constructor(props) {
     super(props);
-    this.state = Object.assign({}, props.location);
-    this.state.editMode = props.editMode;
+    this.state = Object.assign({ editMode: props.editMode }, props.location);
+
+    this.handleCancelClick = this.handleCancelClick.bind(this);
     this.handleEditClick = this.handleEditClick.bind(this);
-    this.handleSaveClick = this.handleSaveClick.bind(this);
     this.handleDeleteClick = this.handleDeleteClick.bind(this);
+    this.handleSaveClick = this.handleSaveClick.bind(this);
+  }
+
+  setEditMode(value) {
+    this.setState({ editMode: value });
   }
 
   handleEditClick(event) {
-    this.setState({ editMode: !this.state.editMode });
+    this.setEditMode(true);
+  }
+
+  handleCancelClick(event) {
+    this.setEditMode(false);
   }
 
   handleSaveClick(event) {
-    // TBD
-    this.setState({ editMode: !this.state.editMode });
+    this.props.saveLocation(this.state);
+    this.setEditMode(false);
   }
 
   handleDeleteClick(event) {
-    // TBD
-    this.setState({ editMode: !this.state.editMode });
+    this.props.deleteLocation(this.props.location);
+    this.setEditMode(false);
   }
 
   render() {
@@ -56,10 +68,10 @@ class Location extends React.Component {
       <form>
         <button className="pull-right" role="button" hidden={this.state.editMode} onClick={this.handleEditClick}>Edit</button>
         <button className="pull-right" role="button" hidden={this.state.editMode} onClick={this.handleDeleteClick}>Delete</button>
-        <button className="pull-right" role="button" hidden={!this.state.editMode} onClick={this.handleEditClick}>Cancel</button>
+        <button className="pull-right" role="button" hidden={!this.state.editMode} onClick={this.handleCancelClick}>Cancel</button>
         <button className="pull-right" role="button" hidden={!this.state.editMode} onClick={this.handleSaveClick}>Save</button>
 
-        <LocationField editMode={this.state.editMode} type="text" handleChange={this.handleChange} placeholder="Name" value={this.state.id} />
+        <LocationField editMode={this.state.editMode} type="text" handleChange={this.handleChange} placeholder="Name" value={this.state.name} />
         <LocationField editMode={this.state.editMode} type="text" handleChange={this.handleChange} placeholder="Address 1" value={this.state.address1} />
         <LocationField editMode={this.state.editMode} type="text" handleChange={this.handleChange} placeholder="Address 2" value={this.state.address2} />
         <LocationField editMode={this.state.editMode} type="text" handleChange={this.handleChange} placeholder="City" value={this.state.city} />
@@ -77,44 +89,55 @@ class Contact extends React.Component {
     super(props);
     this.state = {
       editMode: props.editMode,
+      id: props.contact.id,
       firstName: props.contact.firstName,
       lastName: props.contact.lastName
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleEditClick = this.handleEditClick.bind(this);
+    this.handleCancelClick = this.handleCancelClick.bind(this);
     this.handleSaveClick = this.handleSaveClick.bind(this);
     this.handleDeleteClick = this.handleDeleteClick.bind(this);
   }
 
+  // TODO: DRY this mess up. Still wobbly with how to cleanly hand off the editMode state to the calling component:
+  setEditMode(value) {
+    this.setState({ editMode: value });
+  }
+
   handleChange(event) {
-    this.setState({ value: event.target.value });
+    this.setState({ [event.target.name]: event.target.value });
   }
 
   handleEditClick(event) {
-    this.setState({ editMode: !this.state.editMode });
+    this.setEditMode(true);
+  }
+
+  handleCancelClick(event) {
+    this.setEditMode(false);
   }
 
   handleSaveClick(event) {
-    // TBD
-    this.setState({ editMode: !this.state.editMode });
+    this.props.saveContact(this.state);
+    this.setEditMode(false);
   }
 
   handleDeleteClick(event) {
-    // TBD
-    this.setState({ editMode: !this.state.editMode });
+    // Delete contact from server
+    this.props.deleteContact(this.props.contact.id);
   }
 
   render() {
     if (this.state.editMode) {
       return (
         <form className="form-inline">
-          <button className="pull-right" role="button" onClick={this.handleEditClick}>Cancel</button>
+          <button className="pull-right" role="button" onClick={this.handleCancelClick}>Cancel</button>
           <button className="pull-right" role="button" onClick={this.handleSaveClick}>Save</button>
           <div className="form-group">
-            <input type="text" className="form-control" onChange={this.handleChange} placeholder="First Name" value={
-            this.state.firstName} />
-            <input type="text" className="form-control" onChange={this.handleChange} placeholder="Last Name" value={
-            this.state.lastName} />
+            <input type="text" className="form-control" 
+                   onChange={this.handleChange} placeholder="First Name" name="firstName" value={this.state.firstName} />
+            <input type="text" className="form-control" 
+                   onChange={this.handleChange} placeholder="Last Name" name="lastName" value={this.state.lastName} />
           </div>
         </form>
       );
@@ -130,14 +153,25 @@ class Contact extends React.Component {
   }
 }
 
-class AddressListing extends React.Component {
+class ContactListing extends React.Component {
   render() {
     var contact = this.props.selected;
     if (contact) {
-      var locations = contact.locations.map(location => { return <li key={location.id}><Location location={location} editMode={this.props.editMode}/></li> });
+      var locations = contact.locations.map(location => {
+        return <li key={location.id }><Location location={location}
+                                                saveLocation={(location)=>this.props.saveLocation(location)}
+                                                deleteLocation={(location)=>this.props.deleteLocation(location)}
+                                                editMode={this.props.editMode } /></li> });
       return (
         <div>
-          <Contact key={contact.id} contact={contact} editMode={this.props.editMode} />
+          <Contact key={contact.id}
+                   contact={contact}
+                   editMode={this.props.editMode}
+                   saveContact={(contact)=>this.props.saveContact(contact)}
+                   selectContact={(contact)=>this.props.selectContact(contact)}
+                   deleteContact={(contact)=>this.props.deleteContact(contact)}
+                   saveLocation={(location)=>this.props.saveLocation(location)}
+                   deleteLocation={(location)=>this.props.deleteLocation(location)}/>
           <div className="panel-group">
             <div className="panel">
                 <ul>{locations}</ul>
@@ -151,12 +185,16 @@ class AddressListing extends React.Component {
   }
 };
 
-class AddressList extends React.Component {
+class ContactList extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+
   render() {
-    var nodes = this.props.book.map(function (address) {
+    var nodes = this.props.book.map(function (contact) {
       return (
-        <li key={address.id}>
-          <a href="#" onClick={() => this.props.selectAddress(address)}>{address.firstName}&nbsp;{address.lastName}</a>
+        <li key={contact.id}>
+          <a href="#" onClick={() => this.props.selectContact(contact)}>{contact.firstName}&nbsp;{contact.lastName}</a>
         </li>
         );
     }, this);
@@ -166,7 +204,12 @@ class AddressList extends React.Component {
           <ul>{nodes}</ul>
         </div>
         <div className="col-md-8">
-          <AddressListing selected={this.props.selected}></AddressListing>
+          <ContactListing selected={this.props.selected}
+                          saveContact={(contact)=>this.props.saveContact(contact)}
+                          selectContact={(contact)=>this.props.selectContact(contact)}
+                          deleteContact={(contact)=>this.props.deleteContact(contact)} 
+                          saveLocation={(location)=>this.props.saveLocation(location)}
+                          deleteLocation={(location)=>this.props.deleteLocation(location)}/>
         </div>
       </div>
     );
@@ -187,15 +230,41 @@ class AddressBook extends React.Component {
       });
   }
 
-  selectAddress(address) {
-    this.setState({ selected: address });
+  saveContact(contact) {
+    Api.saveContact(contact);
+    this.render();
+  }
+
+  selectContact(contact) {
+    this.setState({ selected: contact });
+    this.render();
+  }
+
+  deleteContact(contact) {
+    Api.deleteContact(contact.id);
+    this.render();
+  }
+
+  saveLocation(location) {
+    Api.saveLocation(this.state.selected.id, location);
+    this.render();
+  }
+
+  deleteLocation(location) {
+    Api.deleteLocation(this.state.selected.id, location.id);
     this.render();
   }
 
   render() {
     return (
         <div>
-            <AddressList book={this.state.book} selected={this.state.selected} selectAddress={(address)=>this.selectAddress(address)} />
+            <ContactList book={this.state.book}
+                         selected={this.state.selected}
+                         saveContact={(contact)=>this.saveContact(contact)}
+                         selectContact={(contact)=>this.selectContact(contact)}
+                         deleteContact={(contact)=>this.deleteContact(contact)}
+                         saveLocation={(location)=>this.saveLocation(location)}
+                         deleteLocation={(location)=>this.deleteLocation(location)} />
         </div>
       );
   }

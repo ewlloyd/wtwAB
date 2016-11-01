@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Web.Http;
 using AddressBookApi.Data;
 using AddressBookApi.Models;
@@ -48,6 +49,28 @@ namespace AddressBookApi.Controllers
         public void Delete(int id)
         {
             Book.Remove(id);
+        }
+
+        // Location handling:
+        [Route("api/address/{contactId}/{locationId}")]
+        [HttpDelete]
+        public void DeleteLocation(int contactId, int locationId)
+        {
+            Book.RemoveLocation(contactId, locationId);
+        }
+
+        [Route("api/address/{contactId}/{locationId}")]
+        [HttpPut]
+        public Location SaveLocation(int contactId, [FromBody] Location location)
+        {
+            return Book.UpdateLocation(contactId, location);
+        }
+
+        [Route("api/address/{contactId}/{locationId}")]
+        [HttpPost]
+        public Location AddLocation(int contactId, [FromBody] Location location)
+        {
+            return Book.AddLocation(contactId, location);
         }
     }
 }

@@ -1,26 +1,59 @@
 ﻿class Api {
-    static buildUrl(id) {
-        return id ? `/api/Address/${id}` : "/api/Address";
+    static buildUrl(contactId, locationId) {
+        if (contactId) {
+            return locationId
+                ? `/api/Address/${contactId}/${locationId}`
+                : `/api/Address/${contactId}`;
+        } else {
+            return "/api/Address";
+        }
     }
     static getAddressBook() {
         return $.getJSON(this.buildUrl());
     }
-    static getAddress(id) {
-        return $.getJSON(this.buildUrl(id));
+
+    static getContact(contactId) {
+        return $.getJSON(this.buildUrl(contactId));
     }
-    static saveAddress(address) {
+
+    static getLocation(contactId, locationId) {
+        return $.getJSON(this.buildUrl(contactId, locationId));
+    }
+
+    static saveContact(contact) {
         return $.ajax({
-            type: address.id ? "PUT" : "POST",
-            url: this.buildUrl(address.id),
+            type: contact.id ? "PUT" : "POST",
+            url: this.buildUrl(contact.id),
             contentType: "application/json",
             dataType: "json",
-            data: address
+            data: JSON.stringify(contact)
         });
     }
-    static deleteAddress(address) {
+
+    static saveLocation(contactId, location) {
+        if (!contactId)
+            throw "Location must be associated with a contact";
+
+        return $.ajax({
+            type: location.id ? "PUT" : "POST",
+            url: this.buildUrl(contactId, location.id),
+            contentType: "application/json",
+            dataType: "json",
+            data: JSON.stringify(location)
+        });
+    }
+
+    static deleteContact(contactId) {
         return $.ajax({
             type: "DELETE",
-            url: this.buildUrl(address.id)
+            url: this.buildUrl(contactId)
+        });
+    }
+
+    static deleteLocation(contactId, locationId) {
+        return $.ajax({
+            type: "DELETE",
+            url: this.buildUrl(contactId, locationId)
         });
     }
 }
